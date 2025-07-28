@@ -1,35 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import BottomTabNavigator from '../components/BottomTabNavigator';
-import { localAuthService, User } from '../services/localAuth';
+import React from 'react';
+import { View, Text, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import BottomTabNavigator from '../components/BottomTabNavigator';
+import { useRouter } from 'expo-router';
+
+// Hardcoded user data
+const user = {
+  name: "Abdulsalam Sa'ad",
+  givenName: 'Abdulsalam',
+  familyName: "Sa'ad",
+  email: 'abdulsalam@example.com',
+  photo: '', // Leave empty for initials avatar
+};
 
 function ProfileScreen() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Profile actions list
+  const actions = [
+    { label: 'My Booking', icon: 'calendar-outline' as const, onPress: () => {} },
+    { label: 'Payments', icon: 'wallet-outline' as const, onPress: () => {} },
+    { label: 'Profile', icon: 'person-outline' as const, onPress: () => {} },
+    { label: 'Notification', icon: 'notifications-outline' as const, onPress: () => {} },
+    { label: 'Security', icon: 'shield-checkmark-outline' as const, onPress: () => {} },
+    { label: 'Language', icon: 'language-outline' as const, onPress: () => {} },
+    { label: 'Help Center', icon: 'help-circle-outline' as const, onPress: () => {} },
+    { label: 'Invite Friends', icon: 'people-outline' as const, onPress: () => {} },
+  ];
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
-    try {
-      const currentUser = await localAuthService.getCurrentUser();
-      if (currentUser) {
-        setUser(currentUser);
-      } else {
-        router.replace('/get-started');
-      }
-    } catch (error) {
-      router.replace('/get-started');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
@@ -38,86 +36,67 @@ function ProfileScreen() {
         {
           text: 'Logout',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await localAuthService.signOut();
-              router.replace('/get-started');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to logout. Please try again.');
-            }
-          },
+          onPress: () => router.replace('/get-started'),
         },
       ]
     );
   };
 
-  if (loading) {
-    return (
-      <View className="flex-1 bg-white justify-center items-center">
-        <Text className="text-black-1 text-lg">Loading...</Text>
-      </View>
-    );
-  }
-
-  if (!user) return null;
-
-  // Profile actions list
-  const actions: { label: string; icon: any; onPress: () => void }[] = [
-    { label: 'My Booking', icon: 'calendar-outline', onPress: () => {} },
-    { label: 'Payments', icon: 'wallet-outline', onPress: () => {} },
-    { label: 'Profile', icon: 'person-outline', onPress: () => {} },
-    { label: 'Notification', icon: 'notifications-outline', onPress: () => {} },
-    { label: 'Security', icon: 'shield-checkmark-outline', onPress: () => {} },
-    { label: 'Language', icon: 'language-outline', onPress: () => {} },
-    { label: 'Help Center', icon: 'help-circle-outline', onPress: () => {} },
-    { label: 'Invite Friends', icon: 'people-outline', onPress: () => {} },
-  ];
-
   return (
     <View className="flex-1 bg-white">
-      {/* Status Bar */}
-      <View className="h-11 bg-white" />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="flex-row items-center justify-between px-5 pt-4 pb-2">
-          <Text className="text-black-1 text-xl font-bold" style={{ fontFamily: 'Rubik', fontWeight: '600' }}>Profile</Text>
-          <TouchableOpacity>
-            <Ionicons name="notifications-outline" size={26} color="#191D31" />
+        <View className="flex-row items-center justify-between px-6 pt-12 pb-2">
+          <Text className="text-black-1 text-2xl font-extrabold" style={{ fontFamily: 'Rubik', fontWeight: '700' }}>Profile</Text>
+          <TouchableOpacity className="w-10 h-10 bg-white rounded-full justify-center items-center shadow-sm border border-gray-100">
+            <Ionicons name="notifications-outline" size={22} color="#0061FF" />
           </TouchableOpacity>
         </View>
         {/* Profile Avatar and Name */}
         <View className="items-center mt-2 mb-6">
           <View className="relative">
             {user.photo ? (
-              <Image source={{ uri: user.photo }} className="w-32 h-32 rounded-full" />
+              <Image
+                source={{ uri: user.photo }}
+                className="w-28 h-28 rounded-full bg-gray-200"
+              />
             ) : (
-              <View className="w-32 h-32 rounded-full bg-blue-100 justify-center items-center">
-                <Text className="text-3xl text-blue-700 font-bold">{user.givenName?.[0] || user.name?.[0] || 'U'}</Text>
+              <View className="w-28 h-28 rounded-full bg-primary-1 justify-center items-center">
+                <Text className="text-white text-3xl font-bold" style={{ fontFamily: 'Rubik', fontWeight: '700' }}>
+                  {user.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()
+                  }
+                </Text>
               </View>
             )}
-            <TouchableOpacity className="absolute bottom-2 right-2 bg-blue-600 w-9 h-9 rounded-full justify-center items-center border-4 border-white">
-              <Ionicons name="pencil" size={20} color="#fff" />
+            <TouchableOpacity className="absolute bottom-2 right-2 bg-blue-600 w-8 h-8 rounded-full justify-center items-center border-4 border-white">
+              <Ionicons name="pencil" size={16} color="#fff" />
             </TouchableOpacity>
           </View>
-          <Text className="mt-4 text-xl font-bold text-black-1" style={{ fontFamily: 'Rubik', fontWeight: '600' }}>{user.name}</Text>
+          <Text className="mt-4 text-xl font-extrabold text-black-1" style={{ fontFamily: 'Rubik', fontWeight: '700' }}>{user.name}</Text>
         </View>
+        {/* Divider */}
+        <View className="h-px bg-gray-200 mx-6 mb-2" />
         {/* Actions List */}
-        <View className="bg-white px-5">
+        <View className="bg-white px-2">
           {actions.map((action, idx) => (
             <TouchableOpacity
               key={action.label}
-              className="flex-row items-center py-4 border-b border-gray-100"
+              className={`flex-row items-center py-4 px-4 ${idx !== actions.length - 1 ? 'border-b border-gray-100' : ''}`}
               onPress={action.onPress}
             >
-              <Ionicons name={action.icon} size={24} color="#191D31" style={{ width: 32 }} />
-              <Text className="flex-1 text-base text-black-1 ml-2" style={{ fontFamily: 'Rubik', fontWeight: '500' }}>{action.label}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#8C8E98" />
+              <Ionicons name={action.icon} size={22} color="#191D31" style={{ width: 32 }} />
+              <Text className="flex-1 text-base text-black-1 ml-2 font-semibold" style={{ fontFamily: 'Rubik', fontWeight: '500' }}>{action.label}</Text>
+              <Ionicons name="chevron-forward" size={18} color="#8C8E98" />
             </TouchableOpacity>
           ))}
           {/* Logout */}
-          <TouchableOpacity className="flex-row items-center py-4" onPress={handleSignOut}>
-            <Ionicons name="log-out-outline" size={24} color="#F75555" style={{ width: 32 }} />
-            <Text className="flex-1 text-base ml-2" style={{ color: '#F75555', fontFamily: 'Rubik', fontWeight: '500' }}>Logout</Text>
+          <TouchableOpacity className="flex-row items-center py-4 px-4" onPress={handleSignOut}>
+            <Ionicons name="log-out-outline" size={22} color="#F75555" style={{ width: 32 }} />
+            <Text className="flex-1 text-base ml-2 font-semibold" style={{ color: '#F75555', fontFamily: 'Rubik', fontWeight: '500' }}>Logout</Text>
           </TouchableOpacity>
         </View>
         {/* Add some bottom padding so content doesn't hide behind tab bar */}

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, Dimensions, FlatList, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, Dimensions, Animated, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -55,6 +55,8 @@ export default function PropertyDetailsScreen() {
   const { id } = useLocalSearchParams();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const flatListRef = useRef<Animated.FlatList<any>>(null);
 
   const handleContactAgent = () => {
     // Handle contact agent
@@ -80,20 +82,37 @@ export default function PropertyDetailsScreen() {
   return (
     <View className="flex-1 bg-white">
       {/* Status Bar */}
-      <View className="h-11 bg-white" />
+      {/* <View className="h-11 bg-white" /> */}
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Main Property Image */}
+        {/* Main Property Image Slider */}
         <View className="relative">
-          <Image
-            source={require('../../assets/property-main.png')}
-            className="w-full h-96"
-            resizeMode="cover"
+          <Animated.FlatList
+            ref={flatListRef}
+            data={propertyData.gallery}
+            keyExtractor={(_, idx) => idx.toString()}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              { useNativeDriver: false, listener: (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+                const index = Math.round(e.nativeEvent.contentOffset.x / width);
+                setCurrentImageIndex(index);
+              }}
+            )}
+            renderItem={({ item }) => (
+              <Image
+                source={item}
+                style={{ width: width, height: 384 }}
+                resizeMode="cover"
+              />
+            )}
           />
 
           {/* Image Indicators */}
           <View className="absolute bottom-4 left-0 right-0 flex-row justify-center">
-            {[1, 2, 3, 4].map((_, index) => (
+            {propertyData.gallery.map((_, index) => (
               <View
                 key={index}
                 className={`mx-1 ${
@@ -105,8 +124,8 @@ export default function PropertyDetailsScreen() {
             ))}
           </View>
 
-                    {/* Header with Back Button */}
-          <View className="absolute top-4 left-4 right-4 flex-row justify-between items-center">
+          {/* Header with Back Button */}
+          <View className="absolute top-4 left-4 right-4 flex-row justify-between items-center mt-4">
             <TouchableOpacity
               onPress={() => router.back()}
               className="w-12 h-12 bg-black bg-opacity-30 rounded-full justify-center items-center"
